@@ -1,16 +1,20 @@
-package analisador.lexico;
+package br.ufal.ic.ANCodeTest.analisador.lexico;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
+import br.ufal.ic.ANCodeTest.token.Error;
+import br.ufal.ic.ANCodeTest.token.Token;
+import br.ufal.ic.ANCodeTest.token.TokenCategory;
+
 public class Lexic {
 	
 	private Token previousToken;
 	private Token currentToken;
 	private String currentLineContent;
-	private Error cachedError;//serve pra imprimir erros após a impressão do token que deu erro
+	private Error cachedError;//serve pra imprimir erros apÃ³s a impressÃ£o do token que deu erro
 	private int currentLine = 0, currentColumn = 0;
 	private BufferedReader reader;
 	
@@ -50,33 +54,33 @@ public class Lexic {
 	 */
 	public boolean hasNextToken() {
 		sendError();
-		if(currentLine == 0 && currentColumn == 0) {//lê a primeira linha de código
+		if(currentLine == 0 && currentColumn == 0) {//lÃª a primeira linha de cÃ³digo
 			readNextLine();
 			
 			//da print na primeira linha
 			System.out.println("Current Line: ");
 			if(currentLineContent == null) {//caso o arquivo esteja vazio
 				System.out.println((currentLine+1)+"|");
-				return false;//caso o arquivo esteja vazio não há mais tokens
+				return false;//caso o arquivo esteja vazio nÃ£o hÃ¡ mais tokens
 			} else System.out.println((currentLine+1)+"| "+currentLineContent);
 			System.out.println();
 			//fim do print da primeira linha
 		}
 		
 		if(currentLineContent.substring(currentColumn).matches("\\s*")) {
-			while(readNextLine()) {//itera enquanto não chegar no fim do arquivo
+			while(readNextLine()) {//itera enquanto nÃ£o chegar no fim do arquivo
 				currentLine++;
 				currentColumn = 0;
 				
-				//da print na linha atual (exceto a primeira linha, pois ela já é tratada acima)
+				//da print na linha atual (exceto a primeira linha, pois ela jï¿½ ï¿½ tratada acima)
 				System.out.println("\nCurrent Line: ");
 				System.out.println((currentLine+1)+"| "+currentLineContent+"\n");
 				//print da linha atual termina aqui
 				
 				if(!currentLineContent.matches("\\s*")) return true;	
 			}
-			return false;//não há mais linhas a serem lidas(EOF)
-		} else return true;//caso a linha atual não seja composta apenas de espaços em branco
+			return false;//nÃ£o hÃ¡ mais linhas a serem lidas(EOF)
+		} else return true;//caso a linha atual nÃ£o seja composta apenas de espaÃ§os em branco
 		
 	}
 	
@@ -119,14 +123,14 @@ public class Lexic {
 		}
 		
 		if(tokenValue.isEmpty()){
-			if(current == '"'){ //checa se é constante string
+			if(current == '"'){ //checa se Ã© constante string
 				tokenValue += current;
 				current = nextCharacter();
-				if(current == '"'){ //checa se string é vazia
+				if(current == '"'){ //checa se string Ã© vazia
 					tokenValue += current;
 					currentColumn++;
 				} else {
-					while(current != '\n'){ //lê string até \n ou "
+					while(current != '\n'){ //lÃª string atÃ© \n ou "
 						if(current == '\\') current = nextCharacter();
 						tokenValue += current;
 						current = nextCharacter();
@@ -137,14 +141,14 @@ public class Lexic {
 						}
 					}
 				}
-			} else if(current == '\''){ //checa se é constante char
+			} else if(current == '\''){ //checa se Ã© constante char
 				tokenValue += current;
 				current = nextCharacter();
-				if(current == '\\') { //lê possível caracter de escape
+				if(current == '\\') { //lÃª possÃ­vel caracter de escape
 					current = nextCharacter();
 					tokenValue += current;
 				}
-				else if(current != '\n'){ //lê caracter caso não seja caracter de escape
+				else if(current != '\n'){ //lÃª caracter caso nÃ£o seja caracter de escape
 					tokenValue += current;
 				}
 				current = nextCharacter();
@@ -185,8 +189,8 @@ public class Lexic {
 				currentColumn++;
 			}
 		}
-		tokenValue = tokenValue.trim(); //espaços depois do token são retirados
-		previousToken = currentToken; //usado para diferenciar unário negativo de subtração
+		tokenValue = tokenValue.trim(); //espaÃ§os depois do token sÃ£o retirados
+		previousToken = currentToken; //usado para diferenciar unÃ¡rio negativo de subtraÃ§Ã£o
 		token = new Token(tokenValue, tokenLine, tokenCol,analyzeTokenCategory(tokenValue));
 		currentToken = token;
 		System.out.println(token);
@@ -259,7 +263,7 @@ public class Lexic {
 		else if(tokenValue.equals("true") || tokenValue.equals("false")) return TokenCategory.boolCons;
 		//variable id
 		else if(tokenValue.matches("[a-z_A-Z](\\w)*")) return TokenCategory.id;
-		//casos de erro de constantes numéricas e ids
+		//casos de erro de constantes numÃ©ricas e ids
 		else if(tokenValue.matches("\\.\\d+")) errorMessage("Missing number before decimal point", tokenValue);
 		else if(tokenValue.matches("\\d+\\.")) errorMessage("Missing number after decimal point", tokenValue);
 		else if(tokenValue.matches("[a-z_A-Z](.)*")) errorMessage("Id contains invalid characters", tokenValue);

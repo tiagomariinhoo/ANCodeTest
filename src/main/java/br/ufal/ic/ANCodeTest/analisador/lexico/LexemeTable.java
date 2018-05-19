@@ -1,9 +1,11 @@
-package analisador.lexico;
+package br.ufal.ic.ANCodeTest.analisador.lexico;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import br.ufal.ic.ANCodeTest.token.TokenCategory;
 
 public class LexemeTable {
 	
@@ -60,7 +62,7 @@ public class LexemeTable {
 		operadores.put("&&", TokenCategory.opLogAnd);
 		operadores.put("||", TokenCategory.opLogOr);
 		
-		//lista de terminações de tokens utilizada para identificação de ids e constantes numericas
+		//lista de terminadores de tokens utilizada para identificaÃ§Ã£o de ids e constantes numericas
 		tokenEndings.add(' ');
 		tokenEndings.add('\t');
 		tokenEndings.add('\n');

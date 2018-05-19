@@ -1,8 +1,10 @@
-package analisador.lexico;
+package br.ufal.ic.ANCodeTest;
 
 import java.io.FileNotFoundException;
 
-import analisador.sintatico.SyntacticAnalyzer;
+import br.ufal.ic.ANCodeTest.analisador.lexico.Lexic;
+import br.ufal.ic.ANCodeTest.analisador.sintatico.SyntacticAnalyzer;
+import br.ufal.ic.ANCodeTest.token.Token;
 
 public class Main {
 	

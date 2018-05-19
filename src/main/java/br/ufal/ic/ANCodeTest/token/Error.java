@@ -1,4 +1,4 @@
-package analisador.lexico;
+package br.ufal.ic.ANCodeTest.token;
 
 public class Error {
 	

@@ -1,9 +1,9 @@
-package analisador.sintatico;
+package br.ufal.ic.ANCodeTest.analisador.sintatico;
 
 
-import analisador.lexico.Lexic;
-import analisador.lexico.Token;
-import analisador.lexico.TokenCategory;
+import br.ufal.ic.ANCodeTest.analisador.lexico.Lexic;
+import br.ufal.ic.ANCodeTest.token.Token;
+import br.ufal.ic.ANCodeTest.token.TokenCategory;
 
 public class SyntacticAnalyzer {
 	Lexic lexic;
