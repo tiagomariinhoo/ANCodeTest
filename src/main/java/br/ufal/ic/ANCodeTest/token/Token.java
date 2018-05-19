@@ -48,6 +48,24 @@ public class Token {
 	}
 	
 	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof Token)) {
+			return false;
+		}
+		final Token other = (Token) obj;
+		if((this.value.equals(other.value)) && 
+		   (this.category == other.category) && 
+		   (this.tokenLine == other.tokenLine) && 
+		   (this.tokenColumn == other.tokenColumn)) {
+			return true;
+		}
+		return false;
+	}
+	
+	@Override
 	public String toString() {
 		String fmt = "[%03d, %03d] (%04d, %10s) {%s}";
 		return String.format(fmt, tokenLine+1, tokenColumn+1, category.ordinal(), category.toString(), value);

@@ -25,7 +25,11 @@ public class Lexic {
 	 * @throws FileNotFoundException if <code>filepath</code> is not valid
 	 */
 	public Lexic(String filepath) throws FileNotFoundException {
-		this.reader = new BufferedReader(new FileReader(filepath));
+		this(new BufferedReader(new FileReader(filepath)));
+	}
+	
+	Lexic(BufferedReader reader) {
+		this.reader = reader;
 	}
 	
 	/**
