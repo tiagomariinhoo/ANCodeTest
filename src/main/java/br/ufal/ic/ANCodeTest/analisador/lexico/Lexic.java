@@ -51,6 +51,10 @@ public class Lexic {
 		else return false;
 	}
 	
+	public Token getPreviousToken() {
+		return previousToken;
+	}
+	
 	/**
 	 * Checks if the code read still has a next token
 	 * @return true if there is a next token, false otherwise
