@@ -7,9 +7,10 @@ import br.ufal.ic.ANCodeTest.token.Token;
 import br.ufal.ic.ANCodeTest.token.TokenCategory;
 
 public class Syntactic {
-	Lexic lexic;
-	Token token;
-	PrintStream ps;
+	private Lexic lexic;
+	private Token token;
+	private PrintStream ps;
+	private int scopeCounter;
 	
 	public Syntactic(Lexic lexic, Token token) {
 		this(lexic, token, System.out);
@@ -48,10 +49,12 @@ public class Syntactic {
 					S();
 				} else unexpectedToken(")");
 			} else unexpectedToken("(");
-		} else printProduction("S", "epsilon");
+		} else if(!lexic.hasNextToken()) {
+			printProduction("S", "epsilon");
+		} else unexpectedToken("function or variable declaration");
 	}
 	
-	public void FunName() {
+	private void FunName() {
 		if(token.getCategory().equals(TokenCategory.main)) {
 			printProduction("FunName", "'main'");
 			setNextToken();
@@ -63,7 +66,7 @@ public class Syntactic {
 		} else unexpectedToken("id or main");
 	}
 	
-	public void Param() {
+	private void Param() {
 		if(token.getCategory().equals(TokenCategory.intType)
 				|| token.getCategory().equals(TokenCategory.floatType)
 				|| token.getCategory().equals(TokenCategory.charType)
@@ -82,27 +85,27 @@ public class Syntactic {
 		}else printProduction("Param", "epsilon");
 	}
 	
-	public void Paramr() {
+	private void Paramr() {
 		if(token.getCategory().equals(TokenCategory.commaSep)) {
 			printProduction("Paramr", "',' Type 'id' ArrayOpt Paramr");
 			setNextToken();
 			
 			Type();
 			if(token.getCategory().equals(TokenCategory.id)) {
-				if(lexic.hasNextToken()) token = lexic.nextToken();
+				setNextToken();
 				ArrayOpt();
 				Paramr();
 			} else unexpectedToken("id");
 		}else printProduction("Paramr", "epsilon");
 	}
 	
-	public void LEc() {
+	private void LEc() {
 		printProduction("LEc", "Ec LEcr");
 		Ec();
 		LEcr();
 	}
 	
-	public void LEcr() {
+	private void LEcr() {
 		if(token.getCategory().equals(TokenCategory.commaSep)) {
 			printProduction("LEcr", "',' Ec LEcr");
 			setNextToken();
@@ -112,7 +115,7 @@ public class Syntactic {
 		}else printProduction("LEcr","epsilon");
 	}
 	
-	public void FunType() {
+	private void FunType() {
 		if(token.getCategory().equals(TokenCategory.funVoid)) {
 			printProduction("FunType", "'funVoid'");
 			setNextToken();
@@ -122,19 +125,20 @@ public class Syntactic {
 			Type();
 		}
 	}
-	public void Body() {
+	private void Body() {
 		if(token.getCategory().equals(TokenCategory.escBegin)) {
 			printProduction("Body", "'{' BodyPart '}'");
 			setNextToken();
-			
+			scopeCounter++;
 			BodyPart();
 			if(token.getCategory().equals(TokenCategory.escEnd)) {
-				if(lexic.hasNextToken()) token = lexic.nextToken();
+				scopeCounter--;
+				setTokenAndCheckScope();
 			} else unexpectedToken("}");
 		} else unexpectedToken("{");
 	}
 	
-	public void BodyPart() {
+	private void BodyPart() {
 		if(token.getCategory().equals(TokenCategory.intType)
 				|| token.getCategory().equals(TokenCategory.floatType)
 				|| token.getCategory().equals(TokenCategory.charType)
@@ -171,7 +175,7 @@ public class Syntactic {
 		} else printProduction("BodyPart", "epsilon");
 	}
 	
-	public void Return() {
+	private void Return() {
 		if(token.getCategory().equals(TokenCategory.funReturn)) {
 			printProduction("Return", "'funReturn' Ec");
 			setNextToken();
@@ -179,7 +183,7 @@ public class Syntactic {
 		} else unexpectedToken("return");
 	}
 	
-	public void Command() {
+	private void Command() {
 		if(token.getCategory().equals(TokenCategory.estWhile)) {
 			printProduction("Command", "'estWhile' '(' Eb ')' Body");
 			setNextToken();
@@ -249,6 +253,7 @@ public class Syntactic {
 				
 				Eb();
 				if(token.getCategory().equals(TokenCategory.paramEnd)) {
+					setNextToken();
 					Body();
 					IFr();
 				} else unexpectedToken(")");
@@ -290,7 +295,7 @@ public class Syntactic {
 		}else unexpectedToken("command");
 	}
 	
-	public void IdL() {
+	private void IdL() {
 		if(token.getCategory().equals(TokenCategory.id)) {
 			printProduction("IdL", "'id' ArrayAccess IdLr");
 			setNextToken();
@@ -299,7 +304,7 @@ public class Syntactic {
 		} else unexpectedToken("id");
 	}
 	
-	public void IdLr() {
+	private void IdLr() {
 		if(token.getCategory().equals(TokenCategory.commaSep)) {
 			printProduction("IdLr", "',' 'id' ArrayAccess IdLr");
 			setNextToken();
@@ -312,7 +317,7 @@ public class Syntactic {
 		} else printProduction("IdLr", "epsilon");
 	}
 	
-	public void IFr() {
+	private void IFr() {
 		if(token.getCategory().equals(TokenCategory.estElsif)) {
 			printProduction("IFr", "'estElsif' '(' Eb ')' Body IFr");
 			setNextToken();
@@ -336,7 +341,7 @@ public class Syntactic {
 		} else printProduction("IFr", "epsilon");
 	}
 	
-	public void Atr() {
+	private void Atr() {
 		if(token.getCategory().equals(TokenCategory.id)) {
 			printProduction("Atr", "'id' AtrR");
 			setNextToken();
@@ -345,7 +350,7 @@ public class Syntactic {
 		}else unexpectedToken("id");
 	}
 	
-	public void AtrR() {
+	private void AtrR() {
 		if(token.getCategory().equals(TokenCategory.paramBegin)) {
 			printProduction("AtrR", "FunCall");
 			FunCall();
@@ -360,13 +365,13 @@ public class Syntactic {
 		}
 	}
 	
-	public void Decl() {
+	private void Decl() {
 		printProduction("Decl", "Type LI");
 		Type();
 		LI();
 	}
 	
-	public void Type() {
+	private void Type() {
 		if(token.getCategory().equals(TokenCategory.intType)
 		   || token.getCategory().equals(TokenCategory.floatType)
 		   || token.getCategory().equals(TokenCategory.charType)
@@ -379,7 +384,7 @@ public class Syntactic {
 		} else unexpectedToken("type");
 	}
 	
-	public void LI() {
+	private void LI() {
 		if(token.getCategory().equals(TokenCategory.id)) {
 			printProduction("LI", "'id' ArrayOpt Inst LIr");
 			setNextToken();
@@ -390,7 +395,7 @@ public class Syntactic {
 		} else unexpectedToken("id");
 	}
 	
-	public void ArrayOpt() {
+	private void ArrayOpt() {
 		if(token.getCategory().equals(TokenCategory.paramBegin)) {
 			printProduction("ArrayOpt", "'(' Type ',' 'intCons' ')'");
 			setNextToken();
@@ -407,7 +412,7 @@ public class Syntactic {
 		} else printProduction("ArrayOpt", "epsilon");
 	}
 	
-	public void Inst() {
+	private void Inst() {
 		if(token.getCategory().equals(TokenCategory.opEq)) {
 			printProduction("Inst", "'opEq' Inr");
 			setNextToken();
@@ -416,7 +421,7 @@ public class Syntactic {
 		} else printProduction("Inst", "epsilon");
 	}
 	
-	public void Inr() {
+	private void Inr() {
 		if(token.getCategory().equals(TokenCategory.arrayBegin)) {
 			printProduction("Inr", "ArrayCons");
 			ArrayCons();
@@ -426,7 +431,7 @@ public class Syntactic {
 		}
 	}
 	
-	public void ArrayCons() {
+	private void ArrayCons() {
 		if(token.getCategory().equals(TokenCategory.arrayBegin)) {
 			printProduction("ArrayCons", "'[' LEc ']'");
 			setNextToken();
@@ -439,13 +444,13 @@ public class Syntactic {
 		}else unexpectedToken("[");
 	}
 	
-	public void Ec() {
+	private void Ec() {
 		printProduction("Ec", "Fc Ecr");
 		Fc();
 		Ecr();
 	}
 	
-	public void Fc() {
+	private void Fc() {
 		if(token.getCategory().equals(TokenCategory.stringCons)) {
 			printProduction("Fc", "'stringCons'");
 			setNextToken();
@@ -460,19 +465,19 @@ public class Syntactic {
 		}
 	}
 	
-	public void Eb() {
+	private void Eb() {
 		printProduction("Eb", "Tb Ebr");
 		Tb();
 		Ebr();
 	}
 	
-	public void Tb() {
+	private void Tb() {
 		printProduction("Tb", "Fb Tbr");
 		Fb();
 		Tbr();
 	}
 	
-	public void Fb() {
+	private void Fb() {
 		if(token.getCategory().equals(TokenCategory.opLogNot)) {
 			printProduction("Fb", "'opLogNot' Fb");
 			setNextToken();
@@ -489,31 +494,31 @@ public class Syntactic {
 		}
 	}
 	
-	public void Ra() {
+	private void Ra() {
 		printProduction("Ra", "Ea Rar");
 		Ea();
 		Rar();
 	}
 	
-	public void Ea() {
+	private void Ea() {
 		printProduction("Ea", "Ta Ear");
 		Ta();
 		Ear();
 	}
 	
-	public void Ta() {
+	private void Ta() {
 		printProduction("Ta", "Pa Tar");
 		Pa();
 		Tar();
 	}
 	
-	public void Pa() {
+	private void Pa() {
 		printProduction("Pa", "Fa Par");
 		Fa();
 		Par();
 	}
 	
-	public void Par() {
+	private void Par() {
 		if(token.getCategory().equals(TokenCategory.opExp)) {
 			printProduction("Par", "'opExp' Pa");
 			setNextToken();
@@ -522,7 +527,7 @@ public class Syntactic {
 		}else printProduction("Par", "epsilon");
 	}
 
-	public void Fa() {
+	private void Fa() {
 		if(token.getCategory().equals(TokenCategory.paramBegin)) {
 			printProduction("Fa", "'(' Eb ')'");
 			setNextToken();
@@ -551,7 +556,7 @@ public class Syntactic {
 		} else unexpectedToken("constant, id or expression");
 	}
 	
-	public void Id() {
+	private void Id() {
 		if(token.getCategory().equals(TokenCategory.id)) {
 			printProduction("Id", "'id' Idr");
 			setNextToken();
@@ -560,7 +565,7 @@ public class Syntactic {
 		}else unexpectedToken("id");
 	}
 	
-	public void Idr() {
+	private void Idr() {
 		if(token.getCategory().equals(TokenCategory.paramBegin)) {
 			printProduction("Idr", "FunCall");
 			FunCall();
@@ -570,7 +575,7 @@ public class Syntactic {
 		}
 	}
 	
-	public void FunCall() {
+	private void FunCall() {
 		if(token.getCategory().equals(TokenCategory.paramBegin)) {
 			printProduction("FunCall", "'(' LEc ')'");
 			setNextToken();
@@ -583,7 +588,7 @@ public class Syntactic {
 		}else unexpectedToken("(");
 	}
 	
-	public void ArrayAccess() {
+	private void ArrayAccess() {
 		if(token.getCategory().equals(TokenCategory.arrayBegin)) {
 			printProduction("ArrayAccess", "'[' Ea ']'");
 			setNextToken();
@@ -596,7 +601,7 @@ public class Syntactic {
 		}else printProduction("ArrayAccess", "epsilon");
 	}
 	
-	public void Tar() {
+	private void Tar() {
 		if(token.getCategory().equals(TokenCategory.opMult)) {
 			printProduction("Tar", "'opMult' Pa Tar" );
 			setNextToken();
@@ -606,7 +611,7 @@ public class Syntactic {
 		}else printProduction("Tar", "epsilon");
 	}
 	
-	public void Ear() {
+	private void Ear() {
 		if(token.getCategory().equals(TokenCategory.opAd)) {
 			printProduction("Ear", "'opAd' Ta Ear");
 			setNextToken();
@@ -616,7 +621,7 @@ public class Syntactic {
 		}else printProduction("Ear", "epsilon");
 	}
 	
-	public void Rar() {
+	private void Rar() {
 		if(token.getCategory().equals(TokenCategory.opRelEq)) {
 			printProduction("Rar", "'opRelEq' Ea Rar");
 			setNextToken();
@@ -626,7 +631,7 @@ public class Syntactic {
 		}else printProduction("Rar", "epsilon");
 	}
 	
-	public void Fbr() {
+	private void Fbr() {
 		if(token.getCategory().equals(TokenCategory.opRelLtGt)) {
 			printProduction("Fbr", "'opRelLtGt' Ra Fbr");
 			setNextToken();
@@ -636,7 +641,7 @@ public class Syntactic {
 		}else printProduction("Fbr", "epsilon");
 	}
 	
-	public void Tbr() {
+	private void Tbr() {
 		if(token.getCategory().equals(TokenCategory.opLogAnd)) {
 			printProduction("Tbr", "'opLogAnd' Fb Tbr");
 			setNextToken();
@@ -646,7 +651,7 @@ public class Syntactic {
 		}else printProduction("Tbr", "epsilon");
 	}
 	
-	public void Ebr() {
+	private void Ebr() {
 		if(token.getCategory().equals(TokenCategory.opLogOr)) {
 			printProduction("Ebr", "'opLogOr' Tb Ebr");
 			setNextToken();
@@ -656,7 +661,7 @@ public class Syntactic {
 		}else printProduction("Ebr", "epsilon");
 	}
 	
-	public void Ecr() {
+	private void Ecr() {
 		if(token.getCategory().equals(TokenCategory.opConc)) {
 			printProduction("Ecr", "'opConc' ConcOpt Fc Ecr");
 			setNextToken();
@@ -667,7 +672,7 @@ public class Syntactic {
 		}else printProduction("Ecr", "epsilon");
 	}
 	
-	public void ConcOpt() {
+	private void ConcOpt() {
 		if(token.getCategory().equals(TokenCategory.arrayBegin)) {
 			printProduction("ConcOpt", "'[' 'floatCons' ']'");
 			setNextToken();
@@ -683,7 +688,7 @@ public class Syntactic {
 		}else printProduction("ConcOpt", "epsilon");
 	}
 	
-	public void LIr() {
+	private void LIr() {
 		if(token.getCategory().equals(TokenCategory.commaSep)) {
 			printProduction("LIr", "',' 'id' ArrayOpt Inst LIr");
 			setNextToken();
@@ -697,7 +702,7 @@ public class Syntactic {
 			} else unexpectedToken("id");
 		} else if(token.getCategory().equals(TokenCategory.lineEnd)) {
 			printProduction("LIr", "';'");
-			setNextToken();
+			setTokenAndCheckScope();
 		}
 	}
 	
@@ -706,19 +711,29 @@ public class Syntactic {
 		else sendError("Unexpected end of file");
 	}
 	
-	private void unexpectedToken(String expected) {
-		sendError("Expected " +expected+ " after "+lexic.getPreviousToken()+ " but got "+token);
+	private void setTokenAndCheckScope() {
+		if(scopeCounter > 0) {
+			setNextToken();
+		} else {
+			if(lexic.hasNextToken()) token = lexic.nextToken();
+		}
 	}
 	
-	public void printProduction(String left, String right) {
+	private void unexpectedToken(String expected) {
+		if(lexic.getPreviousToken() != null)
+			sendError("Expected " +expected+ " after "+lexic.getPreviousToken()+ " but got "+token);
+		else
+			sendError("Expected " +expected+ " at beginning of file but got "+token);
+	}
+	
+	private void printProduction(String left, String right) {
 		String format = "%10s%s = %s";
 
 		ps.println(String.format(format, "", left, right));
 	}
 	
-	public void sendError(String message) {
+	private void sendError(String message) {
 		ps.println("Error: "+ message);
-		System.exit(0);
 	}
 	
 }

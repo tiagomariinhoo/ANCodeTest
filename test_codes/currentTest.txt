@@ -1,3 +1,9 @@
+
 fun main () void:{
+	
 	print("Hello World!");    
+}
+
+if(true){
+		
 }
